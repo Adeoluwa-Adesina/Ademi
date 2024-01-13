@@ -1,0 +1,93 @@
+:root {
+  --color-primary: #191d2b;
+  --color-secondary: #27ae60;
+  --color-white: #ffffff;
+  --color-black: #000;
+  --color-grey0: #f8f8f8;
+  --color-grey-1: #dbe1e8;
+  --color-grey-2: #b2becd;
+  --color-grey-3: #6c7983;
+  --color-grey-4: #454e56;
+  --color-grey-5: #2a2e35;
+  --color-grey-6: #12181b;
+  --color-ademi-blue: #506bf0;
+  --color-ademi-background: #7d96f0;
+  /*--br-sm-2: 14px;*/
+  --box-shadow-1: 0 3px 15px rgba(0, 0, 0, .2);
+}
+
+body {
+  background-color: var(--color-grey0);
+  font-family: "Poppins", sans-serif;
+  font-size: 1.1rem;
+  color: var(--color-black);
+  transition: all 0.4s ease-in-out;
+}
+
+.main-container {
+  display: flex;
+  flex-direction: row;
+  min-height: 100vh;
+}
+.main-container .navbar {
+  width: 10vw;
+  background-color: var(--color-ademi-blue);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.main-container .navbar .logo-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 15px 0;
+  border-bottom: 1px solid #ddd;
+}
+.main-container .navbar .logo-section img {
+  width: 50%;
+  height: 70%;
+  border-radius: 50%;
+  -o-object-fit: cover;
+     object-fit: cover;
+  transition: all 0.4s ease-in-out;
+}
+.main-container .navbar .logo-section .span {
+  font-family: "Poppins", sans-serif;
+  display: flex;
+  flex-direction: column;
+}
+.main-container .navbar .navbar-item {
+  width: 100%;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.main-container .navbar .navbar-item i {
+  color: #fff;
+  font-size: 24px;
+}
+.main-container .content-block {
+  display: flex;
+  flex-direction: column;
+  width: 90vw;
+}
+.main-container .content-block .main-content {
+  flex: 1;
+  align-items: center;
+  min-height: calc(100vh - 50px);
+  overflow-y: auto;
+}
+.main-container .content-block .footer footer {
+  background-color: #f5f5f5;
+  padding: 0.5px 0;
+  text-align: center;
+}
+.main-container .content-block .footer footer .copyright-notice {
+  font-size: 14px;
+  font-weight: 300;
+  color: #666;
+  margin: 0 auto;
+}/*# sourceMappingURL=base.css.map */
