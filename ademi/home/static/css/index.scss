@@ -1,0 +1,43 @@
+.main-content{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-left: 20px;
+    padding-right: 20px;
+    .youtube-banner{
+        width: 100%;
+        height: 250px;
+        object-fit: contain;
+    }
+    .dream-outcome{
+        font-weight: 300;
+        font-size: 1rem;
+        padding-top: 5px;
+        padding-left: 30px;
+        padding-right: 30px;
+    }
+    .stats-container{
+        display: grid;
+        grid-template-columns: repeat(2,1fr);
+        .mission{
+            p{
+                font-family: 'Poppins', sans-serif;
+                margin: 5px;
+                padding: 3px;
+            }
+        }
+        .stats{
+            p{
+                font-family: 'Poppins', sans-serif;
+                margin: 5px;
+                padding: 3px;
+            }
+        }
+    }
+    .join-us{
+        button{
+            background-color: var(--color-ademi-blue);
+            font-family: 'Poppins', sans-serif;
+        }
+    }
+}
