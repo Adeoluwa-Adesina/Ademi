@@ -35,4 +35,5 @@
 .main-content .join-us button {
   background-color: var(--color-ademi-blue);
   font-family: "Poppins", sans-serif;
+  cursor: pointer;
 }/*# sourceMappingURL=index.css.map */
