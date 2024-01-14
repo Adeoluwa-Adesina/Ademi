@@ -1,0 +1,37 @@
+{% extends 'home/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css\index.css' %}">
+{% endblock %}
+
+{% block title %}
+Home
+{% endblock %}
+
+{% block content %}
+        <img  class="youtube-banner" src="{% static 'images/youtube-banner.png' %}">
+        <h1 class="dream-outcome">We will help your child become an A1 Math student in less than 1 session!</h1>
+        <div class="stats-container">
+            <div class="mission">
+                <p>
+                    Train for exams on the largest database for past questions in Nigeria with quizzes that cater to your specific needs 
+                </p>
+            </div>
+            <div class="stats">
+                <p>
+                    <ul>
+                        <li>10 000+ Users</li>
+                        <li>35 years of WAEC,NECO and JAMB past questions</li>
+                        <li>200+ Schools registered</li>
+                    </ul>
+                </p>
+            </div>
+        </div>
+
+        <div class="join-us">
+            <button class="login">Login</button>
+            <button class="signup">Signup</button>
+        </div>
+{% endblock %}
+
