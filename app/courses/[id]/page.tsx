@@ -46,6 +46,9 @@ export default async function CourseDetailPage({
     .eq("course_id", id)
     .order("created_at", { ascending: true });
 
+  // 👇 Debug log here
+  console.log("Topics from Supabase:", topics);
+
   if (topicsError) {
     return (
       <div className="p-8">
@@ -69,7 +72,7 @@ export default async function CourseDetailPage({
 
       <h2 className="text-2xl font-semibold mb-4">Topics</h2>
 
-      {topics && topics.length > 0 ? (
+      {Array.isArray(topics) && topics.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {topics.map((topic) => (
             <TopicDetailCard

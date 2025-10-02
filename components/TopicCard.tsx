@@ -1,13 +1,13 @@
 // components/TopicCard.tsx
 import Link from "next/link";
 
-interface TopicCardProps {
+interface Topic {
   id: string;
   title: string;
-  content?: string; // ✅ use only string | undefined
+  content?: string;
 }
 
-export default function TopicCard({ id, title, content }: TopicCardProps) {
+export default function TopicCard({ id, title, content }: Topic) {
   return (
     <Link
       href={`/topics/${id}`}

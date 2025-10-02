@@ -1,67 +1,52 @@
-// app/topics/[id]/page.tsx
-import Link from "next/link";
+// app/topics/page.tsx
 import { supabase } from "@/lib/supabaseClient";
+import Link from "next/link";
+import Image from "next/image";
 
-type Topic = {
-  id: string;
-  title: string;
-  content: string | null;
-  course_id: string;
-};
-
-export default async function TopicDetailPage({
-  params,
-}: {
-  params: { id: string };
-}) {
-  const { id } = params;
-
-  // Fetch topic
-  const { data: topic, error } = await supabase
+export default async function TopicsGalleryPage() {
+  const { data: topics, error } = await supabase
     .from("topics")
-    .select("id, title, content, course_id")
-    .eq("id", id)
-    .single();
+    .select("id, title, excerpt, cover_image")
+    .order("created_at", { ascending: true });
 
   if (error) {
-    return (
-      <div className="p-8">
-        <p className="text-red-500">Error loading topic: {error.message}</p>
-        <Link href="/topics" className="text-blue-500 underline mt-4 block">
-          ← Back to Topics
-        </Link>
-      </div>
-    );
-  }
-
-  if (!topic) {
-    return (
-      <div className="p-8">
-        <p className="text-gray-600">Topic not found.</p>
-        <Link href="/topics" className="text-blue-500 underline mt-4 block">
-          ← Back to Topics
-        </Link>
-      </div>
-    );
+    return <p className="p-8 text-red-500">Error loading topics: {error.message}</p>;
   }
 
   return (
-    <div className="p-8 max-w-3xl mx-auto">
-      <Link href="/topics" className="text-blue-600 underline mb-4 block">
-        ← Back to Topics
-      </Link>
+    <div className="p-8 max-w-6xl mx-auto">
+      <h1 className="text-3xl font-bold mb-6">Topics</h1>
 
-      <h1 className="text-3xl font-bold mb-3">{topic.title}</h1>
-      <p className="text-gray-700 mb-6">
-        {topic.content ?? "No content available for this topic."}
-      </p>
-
-      <Link
-        href={`/courses/${topic.course_id}`}
-        className="text-blue-600 underline block mt-6"
-      >
-        View Course →
-      </Link>
+      {topics && topics.length > 0 ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {topics.map((topic) => (
+            <Link
+              key={topic.id}
+              href={`/topics/${topic.id}`}
+              className="block border rounded-lg shadow-sm hover:shadow-md transition bg-white overflow-hidden"
+            >
+              {topic.cover_image && (
+                <div className="relative w-full h-40">
+                  <Image
+                    src={topic.cover_image}
+                    alt={topic.title}
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+              )}
+              <div className="p-4">
+                <h2 className="font-semibold text-lg">{topic.title}</h2>
+                {topic.excerpt && (
+                  <p className="text-sm text-gray-600 mt-2 line-clamp-3">{topic.excerpt}</p>
+                )}
+              </div>
+            </Link>
+          ))}
+        </div>
+      ) : (
+        <p className="text-gray-600">No topics available yet.</p>
+      )}
     </div>
   );
 }
