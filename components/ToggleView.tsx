@@ -15,6 +15,8 @@ type Topic = {
   id: string;
   title: string;
   content?: string | null;
+  excerpt?: string | null;
+  cover_image?: string | null;
 };
 
 export default function ToggleView({
@@ -58,9 +60,9 @@ export default function ToggleView({
           {courses.map((course) => (
             <CourseCard
               key={course.id}
-              id={course.id} // ✅ required by CourseCardProps
+              id={course.id}
               title={course.title}
-              description={course.description ?? undefined} // ✅ normalize null → undefined
+              description={course.description ?? undefined}
             />
           ))}
         </div>
@@ -71,7 +73,8 @@ export default function ToggleView({
               key={topic.id}
               id={topic.id}
               title={topic.title}
-              content={topic.content ?? undefined} // ✅ normalize null → undefined
+              excerpt={topic.excerpt || topic.content?.slice(0, 100)} // ✅ now matches TopicCard
+              cover_image={topic.cover_image || undefined}
             />
           ))}
         </div>

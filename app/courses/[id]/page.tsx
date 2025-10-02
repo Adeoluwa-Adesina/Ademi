@@ -1,7 +1,7 @@
 // app/courses/[id]/page.tsx
 import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
-import TopicDetailCard from "@/components/TopicDetailCard";
+import TopicCard from "@/components/TopicCard"; // ✅ use gallery-style card now
 
 export default async function CourseDetailPage({
   params,
@@ -42,12 +42,9 @@ export default async function CourseDetailPage({
   // Fetch topics for this course
   const { data: topics, error: topicsError } = await supabase
     .from("topics")
-    .select("id, title, content, course_id")
+    .select("id, title, excerpt, content, cover_image, course_id") // ✅ grab excerpt + cover_image
     .eq("course_id", id)
     .order("created_at", { ascending: true });
-
-  // 👇 Debug log here
-  console.log("Topics from Supabase:", topics);
 
   if (topicsError) {
     return (
@@ -62,7 +59,7 @@ export default async function CourseDetailPage({
   }
 
   return (
-    <div className="p-8 max-w-5xl mx-auto">
+    <div className="p-8 max-w-6xl mx-auto">
       <Link href="/courses" className="text-blue-600 underline mb-4 block">
         ← Back to Courses
       </Link>
@@ -73,14 +70,14 @@ export default async function CourseDetailPage({
       <h2 className="text-2xl font-semibold mb-4">Topics</h2>
 
       {Array.isArray(topics) && topics.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {topics.map((topic) => (
-            <TopicDetailCard
+            <TopicCard
               key={topic.id}
               id={topic.id}
               title={topic.title}
-              content={topic.content}
-              courseId={topic.course_id}
+              excerpt={topic.excerpt || topic.content?.slice(0, 100)}
+              cover_image={topic.cover_image}
             />
           ))}
         </div>

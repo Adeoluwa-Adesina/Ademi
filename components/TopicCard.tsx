@@ -1,20 +1,39 @@
 // components/TopicCard.tsx
 import Link from "next/link";
+import Image from "next/image";
 
-interface Topic {
+interface TopicCardProps {
   id: string;
   title: string;
-  content?: string;
+  excerpt?: string;
+  cover_image?: string;
 }
 
-export default function TopicCard({ id, title, content }: Topic) {
+export default function TopicCard({ id, title, excerpt, cover_image }: TopicCardProps) {
   return (
     <Link
       href={`/topics/${id}`}
-      className="block p-4 border rounded-lg shadow-sm bg-white hover:shadow-md transition"
+      className="block bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg hover:scale-[1.02] transition-transform"
     >
-      <h3 className="font-semibold text-lg mb-1">{title}</h3>
-      {content && <p className="text-sm text-gray-600 line-clamp-2">{content}</p>}
+      {/* Cover image */}
+      {cover_image && (
+        <div className="relative w-full h-40">
+          <Image
+            src={cover_image}
+            alt={title}
+            fill
+            className="object-cover"
+          />
+        </div>
+      )}
+
+      {/* Text content */}
+      <div className="p-4">
+        <h3 className="font-semibold text-lg mb-2">{title}</h3>
+        {excerpt && (
+          <p className="text-sm text-gray-600 line-clamp-3">{excerpt}</p>
+        )}
+      </div>
     </Link>
   );
 }
