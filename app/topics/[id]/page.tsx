@@ -3,6 +3,8 @@ import { supabase } from "@/lib/supabaseClient";
 import Link from "next/link";
 import Image from "next/image";
 import ReactMarkdown from "react-markdown";
+import remarkMath from "remark-math";
+import rehypeKatex from "rehype-katex";
 
 type MediaItem = {
   type: "image" | "video" | "pdf";
@@ -18,7 +20,9 @@ export default async function TopicDetailPage({
 
   const { data: topic, error } = await supabase
     .from("topics")
-    .select("id, title, content_markdown, cover_image, media, interactive_component, course_id")
+    .select(
+      "id, title, content_markdown, cover_image, media, interactive_component, course_id"
+    )
     .eq("id", id)
     .single();
 
@@ -34,12 +38,18 @@ export default async function TopicDetailPage({
 
   return (
     <div className="p-8 max-w-3xl mx-auto">
-      <Link href={`/courses/${topic.course_id}`} className="text-blue-600 underline block mb-4">
+      {/* Back link */}
+      <Link
+        href={`/courses/${topic.course_id}`}
+        className="text-blue-600 underline block mb-4"
+      >
         ← Back to Course
       </Link>
 
+      {/* Title */}
       <h1 className="text-3xl font-bold mb-4">{topic.title}</h1>
 
+      {/* Cover Image */}
       {topic.cover_image && (
         <div className="relative w-full h-64 mb-6">
           <Image
@@ -51,10 +61,17 @@ export default async function TopicDetailPage({
         </div>
       )}
 
+      {/* Markdown content w/ LaTeX */}
       <div className="prose prose-lg max-w-none mb-6">
-        <ReactMarkdown>{topic.content_markdown ?? "No content available."}</ReactMarkdown>
+        <ReactMarkdown
+          remarkPlugins={[remarkMath]}
+          rehypePlugins={[rehypeKatex]}
+        >
+          {topic.content_markdown ?? "No content available."}
+        </ReactMarkdown>
       </div>
 
+      {/* Media items */}
       {mediaItems.length > 0 && (
         <div className="mb-6">
           <h2 className="text-xl font-semibold mb-2">Resources</h2>
@@ -103,6 +120,7 @@ export default async function TopicDetailPage({
         </div>
       )}
 
+      {/* Interactive component (WebGL, etc.) */}
       {topic.interactive_component && (
         <div className="mt-8">
           <h2 className="text-xl font-semibold mb-2">Interactive</h2>
