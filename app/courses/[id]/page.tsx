@@ -1,6 +1,6 @@
 // app/courses/[id]/page.tsx
 import Link from "next/link";
-import { supabase } from "@/lib/supabaseClient";
+import { supabase } from "@/supabaseClient";
 import TopicCard from "@/components/TopicCard";
 
 export default async function CourseDetailPage({

@@ -1,31 +1,29 @@
 // components/CourseCard.tsx
 import Link from "next/link";
-import InteractiveCanvas from "./InteractiveCanvas"; // Assumed import path
+import Image from "next/image";
 
 type CourseCardProps = {
   id: string;
   title: string;
   description?: string;
+  thumbnail?: string; // optional thumbnail URL
 };
 
-export default function CourseCard({ id, title, description }: CourseCardProps) {
+export default function CourseCard({ id, title, description, thumbnail }: CourseCardProps) {
   return (
-    // Wrap the entire card in Link for navigation, matching the first code block
-    <Link href={`/courses/${id}`}>
+    <Link href={`/topics/${id}`}>
       <div className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition duration-300 cursor-pointer">
-        
-        {/*
-          1. InteractiveCanvas (from the second code block)
-          This provides the rich media/visual component for the card header.
-        */}
-        <InteractiveCanvas id={id} title={title} />
-        
+        {thumbnail && (
+          <Image
+            src={thumbnail}
+            alt={title}
+            width={400}
+            height={200}
+            className="w-full h-48 object-cover"
+          />
+        )}
         <div className="p-4">
-          {/* 2. Title and Description (from both code blocks)
-            Using the bolder styling from the second block for visual hierarchy.
-          */}
           <h3 className="font-bold text-lg">{title}</h3>
-          
           {description && <p className="text-gray-600 text-sm mt-1">{description}</p>}
         </div>
       </div>

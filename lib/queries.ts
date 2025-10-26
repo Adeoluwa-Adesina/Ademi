@@ -1,5 +1,5 @@
 // lib/queries.ts
-import { supabase } from "./supabaseClient";
+import { supabase } from "../supabaseClient";
 import { Course, Topic } from "@/types";
 
 export async function getCourses(): Promise<Course[]> {

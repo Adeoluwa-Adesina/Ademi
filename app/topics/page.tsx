@@ -1,5 +1,5 @@
 // app/topics/page.tsx
-import { supabase } from "@/lib/supabaseClient";
+import { supabase } from "@/supabaseClient";
 import Link from "next/link";
 import Image from "next/image";
 

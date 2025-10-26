@@ -1,0 +1,19 @@
+# {{ title }}
+
+{{ description }}
+
+---
+
+{% for asset in assets %}
+{% if asset.name.lower().endswith('.png') or asset.name.lower().endswith('.gif') %}
+![{{ asset.name }}]({{ asset.url }})
+{% elif asset.name.lower().endswith('.mp4') %}
+<video controls width="600">
+  <source src="{{ asset.url }}" type="video/mp4" />
+</video>
+{% endif %}
+{% endfor %}
+
+---
+
+_This content was last synced automatically._

@@ -1,6 +1,6 @@
 // app/courses/page.tsx
 import Link from "next/link";
-import { supabase } from "@/lib/supabaseClient";
+import { supabase } from "@/supabaseClient";
 
 type Course = {
   id: string;
