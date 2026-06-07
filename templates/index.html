@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}Ademi — reading notes{% endblock %}
+
+{% block content %}
+<h2 style="margin-top:0">Reading notes</h2>
+<p style="color:#555; font-size:0.95rem; margin-bottom:2rem;">
+  One explainer per chapter — working through books from first principles.
+</p>
+
+{% if grouped %}
+  {% for source_title, posts in grouped.items() %}
+  <section style="margin-bottom: 2.5rem;">
+    <h3 style="color:#555; font-size:0.85rem; text-transform:uppercase;
+               letter-spacing:0.08em; font-weight:normal; margin-bottom:1rem;">
+      {{ source_title }}
+    </h3>
+    <ul style="list-style:none; padding:0;">
+      {% for post in posts %}
+      <li style="margin-bottom:1.1rem; padding-bottom:1.1rem;
+                 border-bottom:1px solid #e8e8e4;">
+        <a href="/{{ post.slug }}" style="text-decoration:none;">
+          <span style="color:#888; font-size:0.85rem; margin-right:0.5rem;">
+            Ch. {{ post.chapter_number }}
+          </span>
+          <strong>{{ post.title }}</strong>
+        </a>
+        {% if post.summary %}
+        <p style="margin:0.25rem 0 0; color:#555; font-size:0.9rem;">
+          {{ post.summary }}
+        </p>
+        {% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+  </section>
+  {% endfor %}
+{% else %}
+  <p style="color:#888;">No posts published yet.</p>
+{% endif %}
+{% endblock %}
