@@ -3,21 +3,25 @@
 {% block title %}{{ post.title }} — Ademi{% endblock %}
 
 {% block content %}
-<nav style="margin-bottom:2rem; font-size:0.85rem; color:#888;">
-  <a href="/" style="color:#888;">← all posts</a>
-  &nbsp;·&nbsp; {{ post.source_title }}, Ch. {{ post.chapter_number }}
-</nav>
+<div class="post-wrap">
 
-<h1 style="font-size:1.9rem; font-weight:bold; line-height:1.25;
-           margin-bottom:0.5rem;">{{ post.title }}</h1>
+  <nav class="post-nav">
+    <a href="/">← All topics</a>
+    &nbsp;·&nbsp; {{ post.source_title }}
+  </nav>
 
-{% if post.summary %}
-<p style="color:#555; font-size:1rem; margin-bottom:2rem;">{{ post.summary }}</p>
-{% endif %}
+  <p class="post-meta">Chapter {{ post.chapter_number }}</p>
+  <h1 class="post-title">{{ post.title }}</h1>
 
-<hr style="border:none; border-top:1px solid #e8e8e4; margin-bottom:2rem;">
+  {% if post.summary %}
+  <p class="post-summary">{{ post.summary }}</p>
+  {% endif %}
 
-<div class="post-body">
-  {{ body_html | safe }}
+  <hr class="post-divider">
+
+  <div class="post-body">
+    {{ body_html | safe }}
+  </div>
+
 </div>
 {% endblock %}

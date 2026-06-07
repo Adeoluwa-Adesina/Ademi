@@ -1,41 +1,118 @@
 {% extends "base.html" %}
 
-{% block title %}Ademi — reading notes{% endblock %}
+{% block title %}Ademi — learning in public{% endblock %}
 
 {% block content %}
-<h2 style="margin-top:0">Reading notes</h2>
-<p style="color:#555; font-size:0.95rem; margin-bottom:2rem;">
-  One explainer per chapter — working through books from first principles.
-</p>
 
-{% if grouped %}
-  {% for source_title, posts in grouped.items() %}
-  <section style="margin-bottom: 2.5rem;">
-    <h3 style="color:#555; font-size:0.85rem; text-transform:uppercase;
-               letter-spacing:0.08em; font-weight:normal; margin-bottom:1rem;">
-      {{ source_title }}
-    </h3>
-    <ul style="list-style:none; padding:0;">
-      {% for post in posts %}
-      <li style="margin-bottom:1.1rem; padding-bottom:1.1rem;
-                 border-bottom:1px solid #e8e8e4;">
-        <a href="/{{ post.slug }}" style="text-decoration:none;">
-          <span style="color:#888; font-size:0.85rem; margin-right:0.5rem;">
-            Ch. {{ post.chapter_number }}
-          </span>
-          <strong>{{ post.title }}</strong>
+<!-- ── hero ─────────────────────────────────────────────────────────── -->
+<section class="hero">
+  <p class="hero__tagline">Love is the Answer</p>
+  <h1 class="hero__title">Learning in public,<br>one chapter at a time.</h1>
+  <p class="hero__sub">
+    Each post is a chapter from a book I'm working through —
+    explained from first principles, in plain English, in my own words.
+  </p>
+  <a href="#topics" class="hero__cta">Browse topics</a>
+</section>
+
+<!-- ── about ─────────────────────────────────────────────────────────── -->
+<section class="about" id="about">
+  <p class="section-label">What this is</p>
+  <div class="about__body">
+    <p>
+      Ademi is a <strong>learning sabbatical</strong> — a structured pause to go deep on things
+      I care about, one book at a time. The rule is simple: I don't move to the next chapter
+      until I can explain the current one clearly enough that a curious stranger could follow it.
+    </p>
+    <p>
+      The method comes from <strong>Richard Feynman</strong>. If you can't explain something
+      simply, you haven't understood it yet — you've only memorised the words. So that's
+      the test. Write it out from scratch. No formulas without intuition behind them.
+      No jargon without a plain-language translation.
+    </p>
+    <p>
+      I've built courses before and loved that work — the challenge of making something
+      genuinely hard feel accessible, finding the right analogy, knowing when a diagram
+      says more than a paragraph. That same energy lives here, but slower and more honest.
+      Just me, the source material, and the writing.
+    </p>
+  </div>
+</section>
+
+<!-- ── feynman ────────────────────────────────────────────────────────── -->
+<section class="feynman">
+  <blockquote>If you want to master something, teach it.</blockquote>
+  <p class="feynman__attr">— Richard P. Feynman</p>
+</section>
+
+<!-- ── topics gallery ────────────────────────────────────────────────── -->
+<section class="topics" id="topics">
+  <div class="topics__header">
+    <h2 class="topics__title">Topics</h2>
+    <div class="search-wrap">
+      <!-- search icon -->
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14"
+           viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input
+        id="topic-search"
+        class="search-input"
+        type="search"
+        placeholder="Search topics…"
+        aria-label="Search topics"
+        autocomplete="off"
+      >
+    </div>
+  </div>
+
+  {% if grouped %}
+    {% for source_title, posts in grouped.items() %}
+    <div class="source-group" data-source="{{ source_title }}">
+      <p class="source-name">{{ source_title }}</p>
+      <div class="card-grid">
+        {% for post in posts %}
+        <a class="topic-card"
+           href="/{{ post.slug }}"
+           data-title="{{ post.title | lower }}"
+           data-summary="{{ (post.summary or '') | lower }}">
+          <p class="card__chapter">Chapter {{ post.chapter_number }}</p>
+          <p class="card__title">{{ post.title }}</p>
+          {% if post.summary %}
+          <p class="card__summary">{{ post.summary }}</p>
+          {% endif %}
         </a>
-        {% if post.summary %}
-        <p style="margin:0.25rem 0 0; color:#555; font-size:0.9rem;">
-          {{ post.summary }}
-        </p>
-        {% endif %}
-      </li>
-      {% endfor %}
-    </ul>
-  </section>
-  {% endfor %}
-{% else %}
-  <p style="color:#888;">No posts published yet.</p>
-{% endif %}
+        {% endfor %}
+        <p class="no-results" aria-live="polite">No topics match your search.</p>
+      </div>
+    </div>
+    {% endfor %}
+  {% else %}
+    <p style="color: var(--text-muted); margin-top: 2rem;">No posts published yet.</p>
+  {% endif %}
+</section>
+
+<script>
+  const input = document.getElementById('topic-search');
+  if (input) {
+    input.addEventListener('input', () => {
+      const q = input.value.toLowerCase().trim();
+      document.querySelectorAll('.card-grid').forEach(grid => {
+        const cards = grid.querySelectorAll('.topic-card');
+        let visible = 0;
+        cards.forEach(card => {
+          const match = !q
+            || card.dataset.title.includes(q)
+            || card.dataset.summary.includes(q);
+          card.style.display = match ? '' : 'none';
+          if (match) visible++;
+        });
+        const msg = grid.querySelector('.no-results');
+        if (msg) msg.style.display = visible === 0 ? 'block' : 'none';
+      });
+    });
+  }
+</script>
+
 {% endblock %}
