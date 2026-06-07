@@ -14,7 +14,8 @@ import markdown
 from flask import Flask, abort, render_template
 
 app = Flask(__name__)
-DB_PATH = Path("blog.db")
+# Anchor to __file__ so the path works on Vercel (CWD is not guaranteed)
+DB_PATH = Path(__file__).parent / "blog.db"
 
 VISUAL_RE = re.compile(r"\[VISUAL:\s*(fig-\d+)\]")
 PAUSE_RE  = re.compile(r"\[PAUSE\]")
