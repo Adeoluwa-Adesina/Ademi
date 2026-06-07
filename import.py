@@ -1,21 +1,20 @@
 """
-import.py — load content/*.md into blog.db
+import.py — load content/*.md into Supabase
 
 Run:  python import.py
 Re-running updates existing posts by slug; never duplicates.
 """
 
 import re
-import sqlite3
 import sys
 from pathlib import Path
 
 import yaml
 
-CONTENT_DIR = Path("content")
-DB_PATH = Path("blog.db")
+from db import get_db, dict_cursor
 
-VISUAL_RE = re.compile(r"\[VISUAL:\s*(fig-\d+)\]")
+CONTENT_DIR = Path("content")
+VISUAL_RE   = re.compile(r"\[VISUAL:\s*(fig-\d+)\]")
 
 
 def parse_file(path: Path) -> tuple[dict, str]:
@@ -27,38 +26,36 @@ def parse_file(path: Path) -> tuple[dict, str]:
     return yaml.safe_load(fm_raw), body.strip()
 
 
-def find_or_create_source(cur: sqlite3.Cursor, title: str) -> int:
-    # Look up by title first — we never want two rows for the same book.
-    # INSERT OR IGNORE leaves the row unchanged if the title already exists;
-    # the SELECT then fetches whichever row (old or new) owns that title.
+def find_or_create_source(cur, title: str) -> int:
+    # INSERT ... ON CONFLICT DO NOTHING leaves the row unchanged if title exists.
+    # The SELECT then fetches whichever row (old or new) owns that title.
     cur.execute(
-        "INSERT OR IGNORE INTO sources (title) VALUES (?)",
-        (title,),
+        "INSERT INTO sources (title) VALUES (%(title)s) ON CONFLICT (title) DO NOTHING",
+        {"title": title},
     )
-    cur.execute("SELECT id FROM sources WHERE title = ?", (title,))
-    return cur.fetchone()[0]
+    cur.execute("SELECT id FROM sources WHERE title = %(title)s", {"title": title})
+    return cur.fetchone()["id"]
 
 
-def upsert_post(cur: sqlite3.Cursor, source_id: int, fm: dict, body: str) -> int:
-    # INSERT OR REPLACE would delete and re-insert (losing created_at and the id).
-    # Instead we do a true upsert:
-    #   - INSERT … ON CONFLICT(slug) DO UPDATE … sets only the fields we own,
-    #     leaving created_at and id untouched.
-    # updated_at is refreshed on every import run so we can see when content changed.
+def upsert_post(cur, source_id: int, fm: dict, body: str) -> int:
+    # True upsert: INSERT on first import, UPDATE on re-import.
+    # ON CONFLICT(slug) targets the UNIQUE constraint so slug is never duplicated.
+    # updated_at is refreshed every run; created_at is left untouched.
     cur.execute(
         """
         INSERT INTO posts
             (source_id, chapter_number, title, slug, summary, body, status)
         VALUES
-            (:source_id, :chapter, :title, :slug, :summary, :body, :status)
-        ON CONFLICT(slug) DO UPDATE SET
-            source_id      = excluded.source_id,
-            chapter_number = excluded.chapter_number,
-            title          = excluded.title,
-            summary        = excluded.summary,
-            body           = excluded.body,
-            status         = excluded.status,
-            updated_at     = datetime('now')
+            (%(source_id)s, %(chapter)s, %(title)s, %(slug)s,
+             %(summary)s, %(body)s, %(status)s)
+        ON CONFLICT (slug) DO UPDATE SET
+            source_id      = EXCLUDED.source_id,
+            chapter_number = EXCLUDED.chapter_number,
+            title          = EXCLUDED.title,
+            summary        = EXCLUDED.summary,
+            body           = EXCLUDED.body,
+            status         = EXCLUDED.status,
+            updated_at     = NOW()
         """,
         {
             "source_id": source_id,
@@ -70,50 +67,50 @@ def upsert_post(cur: sqlite3.Cursor, source_id: int, fm: dict, body: str) -> int
             "status":    fm.get("status", "draft"),
         },
     )
-    cur.execute("SELECT id FROM posts WHERE slug = ?", (fm["slug"],))
-    return cur.fetchone()[0]
+    cur.execute("SELECT id FROM posts WHERE slug = %(slug)s", {"slug": fm["slug"]})
+    return cur.fetchone()["id"]
 
 
-def upsert_figures(cur: sqlite3.Cursor, post_id: int, figures: dict) -> None:
-    # For each figure in frontmatter, upsert into figures.
-    # The UNIQUE(post_id, marker) constraint means ON CONFLICT targets
-    # the exact (post, marker) pair — safe to re-run any number of times.
+def upsert_figures(cur, post_id: int, figures: dict) -> None:
+    # UNIQUE(post_id, marker) means ON CONFLICT targets the exact (post, marker) pair.
     for order, (marker, meta) in enumerate(figures.items(), start=1):
         cur.execute(
             """
             INSERT INTO figures
                 (post_id, marker, caption, alt_text, image_path, sort_order)
             VALUES
-                (:post_id, :marker, :caption, :alt_text, :image_path, :sort_order)
-            ON CONFLICT(post_id, marker) DO UPDATE SET
-                caption    = excluded.caption,
-                alt_text   = excluded.alt_text,
-                image_path = excluded.image_path,
-                sort_order = excluded.sort_order
+                (%(post_id)s, %(marker)s, %(caption)s,
+                 %(alt_text)s, %(image_path)s, %(sort_order)s)
+            ON CONFLICT (post_id, marker) DO UPDATE SET
+                caption    = EXCLUDED.caption,
+                alt_text   = EXCLUDED.alt_text,
+                image_path = EXCLUDED.image_path,
+                sort_order = EXCLUDED.sort_order
             """,
             {
                 "post_id":    post_id,
                 "marker":     marker,
                 "caption":    meta.get("caption", ""),
                 "alt_text":   meta.get("alt", ""),
-                "image_path": meta.get("image"),  # None when image: null
+                "image_path": meta.get("image"),
                 "sort_order": order,
             },
         )
 
 
 def warn_missing_figures(path: Path, body: str, figures: dict) -> None:
-    """Warn for any [VISUAL: fig-n] in the body with no frontmatter entry."""
     for match in VISUAL_RE.finditer(body):
         marker = match.group(1)
         if marker not in figures:
-            print(f"  WARNING {path.name}: [VISUAL: {marker}] has no frontmatter entry",
-                  file=sys.stderr)
+            print(
+                f"  WARNING {path.name}: [VISUAL: {marker}] has no frontmatter entry",
+                file=sys.stderr,
+            )
 
 
-def import_file(cur: sqlite3.Cursor, path: Path) -> None:
-    fm, body = parse_file(path)
-    figures = fm.get("figures") or {}
+def import_file(cur, path: Path) -> None:
+    fm, body   = parse_file(path)
+    figures    = fm.get("figures") or {}
 
     warn_missing_figures(path, body, figures)
 
@@ -130,12 +127,10 @@ def main() -> None:
         print("No markdown files found in content/")
         return
 
-    con = sqlite3.connect(DB_PATH)
-    con.execute("PRAGMA foreign_keys = ON")
-
+    con = get_db()
     try:
-        with con:  # commits on success, rolls back on exception
-            cur = con.cursor()
+        with con:
+            cur = dict_cursor(con)
             for path in files:
                 import_file(cur, path)
     except Exception as exc:

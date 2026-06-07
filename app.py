@@ -7,28 +7,19 @@ Routes:
 """
 
 import re
-import sqlite3
-from pathlib import Path
 
 import markdown
 from flask import Flask, abort, render_template
 
+from db import get_db, dict_cursor
+
 app = Flask(__name__)
-# Anchor to __file__ so the path works on Vercel (CWD is not guaranteed)
-DB_PATH = Path(__file__).parent / "blog.db"
 
 VISUAL_RE = re.compile(r"\[VISUAL:\s*(fig-\d+)\]")
 PAUSE_RE  = re.compile(r"\[PAUSE\]")
 
 
-def get_db() -> sqlite3.Connection:
-    con = sqlite3.connect(DB_PATH)
-    con.row_factory = sqlite3.Row   # lets us access columns by name
-    con.execute("PRAGMA foreign_keys = ON")
-    return con
-
-
-def render_body(body: str, figures: dict[str, sqlite3.Row]) -> str:
+def render_body(body: str, figures: dict) -> str:
     """
     1. Replace [PAUSE] with an HTML spacer.
     2. Replace [VISUAL: fig-n] with the figure block (image or placeholder).
@@ -53,18 +44,14 @@ def render_body(body: str, figures: dict[str, sqlite3.Row]) -> str:
 
     body = VISUAL_RE.sub(figure_html, body)
 
-    # markdown() converts **bold**, headings, paragraphs, etc.
     return markdown.markdown(body, extensions=["extra"])
 
 
 @app.route("/")
 def index():
-    # Fetch all published posts, joined with their source title, ordered so
-    # chapters run in order within each source.
-    # We group them in Python (simple dict) rather than using SQL GROUP BY
-    # because SQLite doesn't support returning grouped arrays natively.
     con = get_db()
-    rows = con.execute(
+    cur = dict_cursor(con)
+    cur.execute(
         """
         SELECT p.slug, p.title, p.summary, p.chapter_number,
                s.title AS source_title
@@ -73,7 +60,8 @@ def index():
         WHERE  p.status = 'published'
         ORDER  BY s.title, p.chapter_number
         """
-    ).fetchall()
+    )
+    rows = cur.fetchall()
     con.close()
 
     grouped: dict[str, list] = {}
@@ -86,33 +74,34 @@ def index():
 @app.route("/<slug>")
 def post(slug: str):
     con = get_db()
+    cur = dict_cursor(con)
 
-    # Single query for the post — only published posts are visible.
-    row = con.execute(
+    cur.execute(
         """
         SELECT p.id, p.title, p.summary, p.body, p.chapter_number,
                s.title AS source_title
         FROM   posts p
         JOIN   sources s ON s.id = p.source_id
-        WHERE  p.slug = ? AND p.status = 'published'
+        WHERE  p.slug = %(slug)s AND p.status = 'published'
         """,
-        (slug,),
-    ).fetchone()
+        {"slug": slug},
+    )
+    row = cur.fetchone()
 
     if row is None:
         con.close()
         abort(404)
 
-    # Fetch all figures for this post, keyed by marker for O(1) lookup.
-    fig_rows = con.execute(
+    cur.execute(
         """
         SELECT marker, caption, alt_text, image_path
         FROM   figures
-        WHERE  post_id = ?
+        WHERE  post_id = %(post_id)s
         ORDER  BY sort_order
         """,
-        (row["id"],),
-    ).fetchall()
+        {"post_id": row["id"]},
+    )
+    fig_rows = cur.fetchall()
     con.close()
 
     figures = {f["marker"]: f for f in fig_rows}
